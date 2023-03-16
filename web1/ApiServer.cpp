@@ -4,40 +4,92 @@
 #include <QImage>
 #include <QDebug>
 
-ApiServer::ApiServer(QObject *parent)
-  : QObject{parent}
+ApiServer::ApiServer(QQuickItem *parent)
+  : QQuickItem{parent}
 {
 
 }
 
-void ApiServer::api3(QJsonObject images)
-{
+int ApiServer::getUploadPersent(){
+  return mUploadPercent;
+}
 
-  for(const QString key : images.keys())
-  {
-    images.insert(key, imagePathToBase64(images.value(key).toString()));
+void ApiServer::sendSample(QString filePath)
+{
+  QUrl fileUrl(filePath);
+  if(fileUrl.isLocalFile()){
+    filePath = fileUrl.toLocalFile();
   }
 
+  mUploadPercent= 0;
+
  SendRequest *request = new SendRequest();
- connect(request, &SendRequest::setRespons, this, &ApiServer::api3Respons);
- request->sendRequest(images,"http://192.168.100.9:5000/api3");
+ connect(request, &SendRequest::setRespons, this, &ApiServer::sampleRespons);
+ connect(request, &SendRequest::setUploadPersent, this, &ApiServer::setUploadPersent);
+ request->sendFile(filePath,"http://127.0.0.1:5000/setsample");
 }
 
-void ApiServer::api3Respons(QByteArray respons)
+void ApiServer::sendSample(QSharedPointer<QByteArray> fileCOntent, QString fileName)
+{
+  mUploadPercent= 0;
+
+ SendRequest *request = new SendRequest();
+ connect(request, &SendRequest::setRespons, this, &ApiServer::sampleRespons);
+ connect(request, &SendRequest::setUploadPersent, this, &ApiServer::setUploadPersent);
+ request->sendFile(fileCOntent,"http://127.0.0.1:5000/setsample",fileName);
+}
+
+void ApiServer::sendTarget(QString filePath)
+{
+  QUrl fileUrl(filePath);
+  if(fileUrl.isLocalFile()){
+    filePath = fileUrl.toLocalFile();
+  }
+
+  mUploadPercent= 0;
+
+ SendRequest *request = new SendRequest();
+ connect(request, &SendRequest::setRespons, this, &ApiServer::sampleRespons);
+ connect(request, &SendRequest::setUploadPersent, this, &ApiServer::setUploadPersent);
+ request->sendFile(filePath,"http://127.0.0.1:5000/settarget");
+}
+
+void ApiServer::sendTarget(QSharedPointer<QByteArray> fileCOntent, QString fileName)
+{
+  mUploadPercent= 0;
+
+ SendRequest *request = new SendRequest();
+ connect(request, &SendRequest::setRespons, this, &ApiServer::sampleRespons);
+ connect(request, &SendRequest::setUploadPersent, this, &ApiServer::setUploadPersent);
+ request->sendFile(fileCOntent,"http://127.0.0.1:5000/settarget",fileName);
+}
+
+void ApiServer::requestClear()
+{
+  SendRequest *request = new SendRequest();
+  connect(request, &SendRequest::setRespons, this, &ApiServer::sampleRespons);
+  request->sendRequest({},"http://127.0.0.1:5000/clear");
+}
+
+void ApiServer::requestCalc()
+{
+  SendRequest *request = new SendRequest();
+  connect(request, &SendRequest::setRespons, this, &ApiServer::calcRespons);
+  request->sendRequest({},"http://127.0.0.1:5000/calc");
+}
+
+void ApiServer::sampleRespons(QByteArray respons)
 {
   qDebug()<<respons;
 }
 
-QString ApiServer::imagePathToBase64(QString path)
+void ApiServer::calcRespons(QByteArray respons)
 {
-  path=path.remove("file://");
-  QImage image(path);
-  QByteArray ba;
-  QBuffer buffer(&ba);
-  image.save(&buffer, "JPEG");
-
-  QString base64String = ba.toBase64();
-  qDebug()<<base64String;
-  return base64String.prepend("data:image/jpeg;base64,");
+  emit serverCalc(respons.data());
 }
 
+void ApiServer::setUploadPersent(int persent)
+{
+  mUploadPercent = persent;
+  emit uploadPersentChanged(mUploadPercent);
+}

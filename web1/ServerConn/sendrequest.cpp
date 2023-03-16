@@ -98,7 +98,85 @@ void SendRequest::sendJSONRequest(QJsonObject params, QString link)
 
         connect(reply, &QNetworkReply::downloadProgress, this, &SendRequest::onDownloadProgress );
 
-//        reply->deleteLater();
+        //        reply->deleteLater();
+}
+
+void SendRequest::sendFile(QString filePath, QString link, QString customName)
+{
+  tempLink=link;
+
+  QFile *file = new QFile(filePath, this);
+
+  if (!file->open(QIODevice::ReadOnly)) {
+      // handle file open error
+    netError(-1);
+    return;
+  }
+
+  QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType, this);
+  QHttpPart filePart;
+  auto fileName = customName.isEmpty()? file->fileName() : customName;
+  filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file\"; filename=\""+fileName+"\""));
+  filePart.setBodyDevice(file);
+  file->setParent(multiPart);
+  multiPart->append(filePart);
+
+
+      QUrl url(link);
+      QNetworkRequest request(url);
+      request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + multiPart->boundary());
+
+      reply = serverConn->networkManager.post(request, multiPart);
+      //multiPart->setParent(reply);
+
+      connect(reply, &QNetworkReply::uploadProgress, this, [=](qint64 bytesSent, qint64 bytesTotal) {
+              if (bytesTotal > 0)
+              {
+                  int percent = static_cast<int>((bytesSent * 100) / bytesTotal);
+                  emit setUploadPersent(percent);
+              }
+      });
+
+      connect(reply, &QNetworkReply::finished, this, &SendRequest::respons);
+
+      connect(reply, &QNetworkReply::downloadProgress, this, &SendRequest::onDownloadProgress );
+}
+
+void SendRequest::sendFile(QSharedPointer<QByteArray> fileContent, QString link, QString customName)
+{
+  tempLink=link;
+
+  if (fileContent->isEmpty()) {
+      // handle file open error
+    netError(-1);
+    return;
+  }
+
+  QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType, this);
+  QHttpPart filePart;
+  filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file\"; filename=\""+customName+"\""));
+  filePart.setBody(*fileContent);
+  multiPart->append(filePart);
+
+
+      QUrl url(link);
+      QNetworkRequest request(url);
+      request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + multiPart->boundary());
+
+      reply = serverConn->networkManager.post(request, multiPart);
+      //multiPart->setParent(reply);
+
+      connect(reply, &QNetworkReply::uploadProgress, this, [this](qint64 bytesSent, qint64 bytesTotal) {
+              if (bytesTotal > 0)
+              {
+                  int percent = static_cast<int>((bytesSent * 100) / bytesTotal);
+                  emit setUploadPersent(percent);
+              }
+      });
+
+      connect(reply, &QNetworkReply::finished, this, &SendRequest::respons);
+
+      connect(reply, &QNetworkReply::downloadProgress, this, &SendRequest::onDownloadProgress );
 }
 
 void SendRequest::respons(){

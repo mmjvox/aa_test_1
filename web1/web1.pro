@@ -1,22 +1,28 @@
 QT += quick
 
+wasm{
+QT += widgets
+}
 
 HEADERS += \
     ApiServer.h \
     ServerConn/sendrequest.h \
     ServerConn/serverconn.h \
+    WasmFileDialog.h
 
 SOURCES += \
     ApiServer.cpp \
     ServerConn/sendrequest.cpp \
     ServerConn/serverconn.cpp \
+    WasmFileDialog.cpp \
         main.cpp
 
 
 RESOURCES += qml.qrc
 
 resources.files = main.qml \
-                  ImageSelect.qml
+                  ImageSelect.qml \
+                  TargetImage.qml
 resources.prefix = /$${TARGET}
 RESOURCES += resources
 

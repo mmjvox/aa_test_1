@@ -14,6 +14,8 @@
 #include <QTimer>
 #include <QTime>
 #include <QPointer>
+#include <QFile>
+#include <QSharedPointer>
 #include "ServerConn/serverconn.h"
 
 QT_BEGIN_NAMESPACE
@@ -36,6 +38,8 @@ public:
 
     void sendRequest(QJsonObject params, QString link);
     void sendJSONRequest(QJsonObject params, QString link);
+    void sendFile(QString file, QString link, QString customName="");
+    void sendFile(QSharedPointer<QByteArray> fileContent, QString link, QString customName="");
     void uploadDone(QByteArray data);
 
     QPointer<QNetworkReply> reply;
@@ -47,6 +51,7 @@ public:
 
 signals:
      void setRespons(QByteArray data);
+     void setUploadPersent(int  percent);
      void finished();
      void error();
 

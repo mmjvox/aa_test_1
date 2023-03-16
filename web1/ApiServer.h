@@ -2,23 +2,38 @@
 #define APISERVER_H
 
 #include <QObject>
+#include <QQuickItem>
 #include <QJsonObject>
+#include <QSharedPointer>
 
-class ApiServer : public QObject
+class ApiServer : public QQuickItem
 {
+  Q_PROPERTY(int uploadPersent READ getUploadPersent NOTIFY uploadPersentChanged)
   Q_OBJECT
 public:
-  explicit ApiServer(QObject *parent = nullptr);
+  explicit ApiServer(QQuickItem *parent = nullptr);
+
+  int getUploadPersent();
 
 public slots:
-  void api3(QJsonObject images);
-  void api3Respons(QByteArray respons);
+  void sendSample(QString filePath);
+  void sendSample(QSharedPointer<QByteArray> fileCOntent, QString fileName);
+  void sendTarget(QString filePath);
+  void sendTarget(QSharedPointer<QByteArray> fileCOntent, QString fileName);
+  void requestClear();
+  void requestCalc();
+  //
+  void sampleRespons(QByteArray respons);
+  void calcRespons(QByteArray respons);
+  void setUploadPersent(int persent);
 
 signals:
-
+  void uploadPersentChanged(int uploadPersent);
+  void serverCalc(QString calc);
 
 private:
-  QString imagePathToBase64(QString path);
+  int mUploadPercent=0;
+
 
 };
 

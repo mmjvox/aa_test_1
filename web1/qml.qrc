@@ -3,5 +3,6 @@
         <file>qtquickcontrols2.conf</file>
         <file>main.qml</file>
         <file>ImageSelect.qml</file>
+        <file>TargetImage.qml</file>
     </qresource>
 </RCC>

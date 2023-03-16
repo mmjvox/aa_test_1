@@ -3,19 +3,26 @@
 #include <QQmlContext>
 
 #include "ApiServer.h"
+#include "WasmFileDialog.h"
 
 int main(int argc, char *argv[])
 {
   QGuiApplication app(argc, argv);
 
-  ApiServer apiServer;
+
+  qmlRegisterType<ApiServer>("ApiServer", 1,0, "ApiServer");
+  qmlRegisterType<WasmFileDialog>("WasmFileDialog", 1,0, "WasmFileDialog");
+
 
   QQmlApplicationEngine engine;
-  auto context = engine.rootContext();
 
-  context->setContextProperty("ApiServer" , &apiServer);
+#ifdef __EMSCRIPTEN__
+  engine.rootContext()->setContextProperty("wasm_platform",true);
+#else
+  engine.rootContext()->setContextProperty("wasm_platform",false);
+#endif
 
-  const QUrl url(u"qrc:/web1/main.qml"_qs);
+  const QUrl url("qrc:/web1/main.qml");
   QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                    &app, [url](QObject *obj, const QUrl &objUrl) {
     if (!obj && url == objUrl)
