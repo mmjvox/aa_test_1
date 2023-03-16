@@ -1,7 +1,9 @@
 from flask import Flask
 from flask import request
+from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import json
+import os
 #
 import numpy as np
 import cv2
@@ -12,9 +14,17 @@ targetFile = None
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def root_path():
-    return "<p>404</p>"
+    return send_from_directory("static_pages", "web1.html")
+
+
+@app.route('/<path:filename>')
+def serve_file(filename):
+    root_dir = os.path.abspath(os.path.dirname(__file__))
+    file_path = os.path.join(root_dir, 'static_pages', filename)
+    return send_from_directory(os.path.dirname(file_path), os.path.basename(file_path))
 
 
 @app.route("/setsample", methods=['POST'])

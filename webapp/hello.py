@@ -5,6 +5,7 @@ from flask import Flask
 from flask import request
 import base64
 import json
+import face_recognition
 
 app = Flask(__name__)
 
@@ -20,7 +21,7 @@ def apii1():
 @app.route("/api2", methods=['GET','POST'])
 def email():
     return "inseert image: " + request.form.get("email")
-import face_recognition
+
 #cv2.imshow("show",img)
 
 @app.route('/api3', methods=['POST'])
